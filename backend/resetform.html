@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Password</title>
+</head>
+<body>
+    <h1>Reset Your Password</h1>
+    <form id="resetPasswordForm">
+        <input type="hidden" id="resetToken" name="resetToken"> <!-- Include the token in a hidden field -->
+        <label for="newPassword">New Password:</label>
+        <input type="password" id="newPassword" name="newPassword" required>
+        <button type="submit">Reset Password</button>
+    </form>
+
+    <script>
+        // Function to get query parameters from the URL
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        // Get the reset token from the URL and set it in the hidden input
+        document.addEventListener('DOMContentLoaded', () => {
+            const resetToken = getQueryParam('token');
+            if (resetToken) {
+                document.getElementById('resetToken').value = resetToken;
+            } else {
+                alert('Invalid reset link.');
+            }
+        });
+
+        // Handle form submission
+        document.getElementById('resetPasswordForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const token = document.getElementById('resetToken').value;
+            const newPassword = document.getElementById('newPassword').value;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/user/updatePassword', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ token, newPassword })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    alert(data.msg);
+                } else {
+                    alert(data.msg);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>
