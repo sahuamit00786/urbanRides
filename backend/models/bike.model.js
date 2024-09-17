@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const bikeSchema = mongoose.Schema(
+const bikeSchema = new mongoose.Schema(
   {
     bikeId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -54,6 +54,57 @@ const bikeSchema = mongoose.Schema(
       type: Boolean,
       default: false,
       required: true,
+    },
+    transmission: {
+      type: String,
+      enum: ['manual', 'automatic', 'semi-automatic'],
+      required: true,
+    },
+    seatCapacity: {
+      type: Number,
+      default: 2,
+    },
+    dayPackage: {
+      type: Number,
+      default: 2500,
+    },
+    weeklyPackage: {
+      type: Number,
+      default: 1000,
+    },
+    securityMoney: {
+      type: Number,
+      default: 2500,
+    },
+    fuelEfficiency: {
+      type: String,
+      required: true,
+    },
+    brand: {
+      type: String,
+      required: true,
+    },
+    name: {
+      type: String,
+      required: true,
+    },
+    engineCapacity: {
+      type: String,
+      required: true,
+    },
+    features: {
+      hasABS: {
+        type: Boolean,
+        default: false,
+      },
+      hasGPS: {
+        type: Boolean,
+        default: false,
+      },
+      hasBluetooth: {
+        type: Boolean,
+        default: false,
+      },
     },
   },
   { timestamps: true },

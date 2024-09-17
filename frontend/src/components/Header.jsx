@@ -13,8 +13,14 @@ const Header = () => {
             UrbanRides
           </Link>
           <Link
+            to="/rent"
+            className="pt-1 ml-5 hover:bg-gray-400 hover:text-white transition-colors duration-300 rounded-3xl p-2"
+          >
+            Rentals
+          </Link>
+          <Link
             to="/ride"
-            className="pt-1 ml-10 hover:bg-gray-400 hover:text-white transition-colors duration-300 px-4 rounded-3xl p-2"
+            className="pt-1 ml-4 hover:bg-gray-400 hover:text-white transition-colors duration-300 px-4 rounded-3xl p-2"
           >
             Ride
           </Link>
@@ -42,14 +48,17 @@ const Header = () => {
               } rounded-xl w-24 top-10 right-1 bg-white border border-black mt-2 text-black flex-col py-1 text-center gap-1`}
             >
               <div className="border-b pb-1 hover:text-gray-700 border-gray-700">
-                About us
+                <Link to="/about">About us</Link>
               </div>
               <div className=" hover:text-gray-700 border-gray-700">Blog</div>
             </div>
           </li>
         </ul>
         <ul className="flex font-semibold items-center flex-row gap-5 pt-3">
-          <Link className=" hover:bg-gray-400 hover:text-white transition-colors rounded-3xl px-4 duration-300">
+          <Link
+            to="/help"
+            className=" hover:bg-gray-400 hover:text-white transition-colors rounded-3xl px-4 duration-300"
+          >
             Help
           </Link>
           <Link className="relative">
@@ -74,9 +83,11 @@ const Header = () => {
                   <Link to="/profile">Profile</Link>
                 </div>
                 <div className="border-b hover:text-gray-700 border-gray-700">
-                  Rides
+                  <Link to="/profile?section=rides">Rides</Link>
                 </div>
-                <div className="hover:text-gray-700">Sign out</div>
+                <div className="hover:text-gray-700">
+                  <Link to="/sign-in">Sign out</Link>
+                </div>
               </div>
             </div>
           </Link>

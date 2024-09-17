@@ -1,5 +1,4 @@
 import SuggestCard from '../components/SuggestCard';
-import Footer from '../components/Footer';
 
 const Home = () => {
   return (
@@ -24,7 +23,7 @@ const Home = () => {
                 <input
                   type="text"
                   placeholder="Enter location"
-                  className="flex-1"
+                  className="flex-1 focus:outline-none border-0"
                 />
                 <i className="fa-solid fa-paper-plane"></i>
               </div>
@@ -35,7 +34,7 @@ const Home = () => {
                 <input
                   type="text"
                   placeholder="Enter destination"
-                  className="flex-1"
+                  className="flex-1 focus:outline-none"
                 />
                 <i className="fa-solid fa-map-pin"></i>
               </div>

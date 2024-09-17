@@ -1,5 +1,4 @@
-import SuggestCard from '../components/SuggestCard';
-import Footer from '../components/Footer';
+import { Link } from 'react-router-dom';
 
 const Ride = () => {
   return (
@@ -16,7 +15,9 @@ const Ride = () => {
             {/* Location and Destination Inputs */}
             <div className="flex flex-row gap-4 items-center lg:items-start">
               <div className=" text-black border px-6 rounded-md py-2 bg-white">
-                <button>Get Started</button>
+                <button>
+                  <Link to="/rideSelection">Get Started</Link>
+                </button>
               </div>
 
               {/* Enter Destination */}
