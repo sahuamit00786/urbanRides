@@ -8,13 +8,10 @@
 // import 'leaflet/dist/leaflet.css';
 // import L from 'leaflet';
 // import { useState } from 'react';
-// import icon from 'leaflet/dist/images/marker-icon.png';
-// import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-
 // const GEOAPIFY_API_KEY = 'b81a0261fe1e433bba84bd8216048977';
 // let DefaultIcon = L.icon({
-//   iconUrl: icon,
-//   shadowUrl: iconShadow,
+//   iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+//   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 // });
 
 // L.Marker.prototype.options.icon = DefaultIcon;
@@ -28,10 +25,31 @@
 //   const [destinationInput, setDestinationInput] = useState('');
 //   const [locationSuggestions, setLocationSuggestions] = useState([]);
 //   const [destinationSuggestions, setDestinationSuggestions] = useState([]);
-//   const [route, setRoute] = useState([]); // Store the route polyline
-//   const [distance, setDistance] = useState(null); // Store the distance between two points
+//   const [routeCoordinates, setRouteCoordinates] = useState([]);
+//   const [distance, setDistance] = useState(null);
 
-//   // Fetch suggestions from Geoapify Autocomplete API for location
+//   const fromHome = JSON.parse(localStorage.getItem('location'));
+//   const { first, second } = fromHome;
+
+//   const fetchRoute = async () => {
+//     if (!position || !secondPosition) return;
+
+//     const response = await fetch(
+//       `https://api.geoapify.com/v1/routing?waypoints=${position[0]},${position[1]}|${secondPosition[0]},${secondPosition[1]}&mode=drive&apiKey=${GEOAPIFY_API_KEY}`,
+//     );
+//     const data = await response.json();
+//     console.log('data', data.features);
+
+//     if (data.features && data.features.length > 0) {
+//       const coordinates = data.features[0].geometry.coordinates.map((coord) => [
+//         coord[1],
+//         coord[0],
+//       ]); // [lat, lng]
+//       setRouteCoordinates(coordinates);
+//       setDistance(data.features[0].properties.distance / 1000);
+//     }
+//   };
+
 //   const fetchLocationSuggestions = async (input) => {
 //     if (input.length > 2) {
 //       const response = await fetch(
@@ -57,20 +75,6 @@
 //     }
 //   };
 
-//   // Fetch route between two locations from Geoapify Routing API
-//   const fetchRoute = async () => {
-//     const response = await fetch(
-//       `https://api.geoapify.com/v1/routing?waypoints=${position[0]},${position[1]}|${secondPosition[0]},${secondPosition[1]}&mode=drive&apiKey=${GEOAPIFY_API_KEY}`,
-//     );
-//     const data = await response.json();
-//     const routeCoords = data.features[0].geometry.coordinates.map((coord) => [
-//       coord[1],
-//       coord[0],
-//     ]); // Convert to [lat, lon] format
-//     setRoute(routeCoords); // Set the polyline route
-//     setDistance(data.features[0].properties.distance / 1000); // Distance in kilometers
-//   };
-
 //   return (
 //     <div className="w-full min-h-screen p-10 flex flex-row justify-between">
 //       <div className="border w-[20vw] bg-gray-50 h-[85vh]">
@@ -86,7 +90,7 @@
 //               <input
 //                 type="text"
 //                 placeholder="Enter location"
-//                 value={locationInput}
+//                 value={first || locationInput}
 //                 onChange={(e) => {
 //                   setLocationInput(e.target.value);
 //                   fetchLocationSuggestions(e.target.value);
@@ -124,7 +128,7 @@
 //               <input
 //                 type="text"
 //                 placeholder="Enter destination"
-//                 value={destinationInput}
+//                 value={second || destinationInput}
 //                 onChange={(e) => {
 //                   setDestinationInput(e.target.value);
 //                   fetchDestinationSuggestions(e.target.value);
@@ -157,10 +161,10 @@
 //             </div>
 
 //             <button
+//               onClick={fetchRoute} // Fetch route when clicked
 //               className="border w-full py-2 bg-black text-white hover:bg-gray-600 transition duration-100"
-//               onClick={fetchRoute} // Fetch the route when button is clicked
 //             >
-//               Search Rides
+//               Check Rides
 //             </button>
 //           </div>
 //         </div>
@@ -177,22 +181,34 @@
 //             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
 //             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 //           />
+//           {/* Marker for the first position */}
 //           <Marker position={position}>
 //             <Popup>
 //               Starting Point: {locationInput || 'Selected location'}
 //             </Popup>
 //           </Marker>
+
+//           {/* Marker for the second position */}
 //           <Marker position={secondPosition}>
 //             <Popup>
 //               Destination: {destinationInput || 'Selected destination'}
 //             </Popup>
 //           </Marker>
 
-//           {/* Draw the route if available */}
-//           {route.length > 0 && <Polyline positions={route} color="blue" />}
+//           {/* Polyline for the route */}
+//           {routeCoordinates.length > 0 && (
+//             <>
+//               <Polyline
+//                 positions={routeCoordinates}
+//                 color="blue"
+//                 weight={8} // Increase weight here to make the line thicker
+//                 opacity={0.8} // Optional: adjust opacity
+//                 dashArray="5, 10" // Optional: add dashed line style
+//               />
+//               {/* <AdjustMapView bounds={routeCoordinates} /> */}
+//             </>
+//           )}
 //         </MapContainer>
-
-//         {/* Display the distance */}
 //         {distance && (
 //           <div className="p-4">
 //             <p>Distance: {distance.toFixed(2)} km</p>
@@ -205,6 +221,7 @@
 
 // export default RideSelection;
 
+
 import {
   MapContainer,
   TileLayer,
@@ -214,9 +231,10 @@ import {
 } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-const GEOAPIFY_API_KEY = 'b81a0261fe1e433bba84bd8216048977'; // Add your API key here
+const GEOAPIFY_API_KEY = 'b81a0261fe1e433bba84bd8216048977';
+
 let DefaultIcon = L.icon({
   iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
@@ -225,7 +243,7 @@ let DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 const RideSelection = () => {
-  const [position, setPosition] = useState([26.8854284, 80.99749539150943]); // Default position
+  const [position, setPosition] = useState([26.8854284, 80.99749539150943]);
   const [secondPosition, setSecondPosition] = useState([
     26.8854284, 80.99749539150943,
   ]);
@@ -233,24 +251,59 @@ const RideSelection = () => {
   const [destinationInput, setDestinationInput] = useState('');
   const [locationSuggestions, setLocationSuggestions] = useState([]);
   const [destinationSuggestions, setDestinationSuggestions] = useState([]);
-  const [routeCoordinates, setRouteCoordinates] = useState([]); // To store route coordinates
+  const [routeCoordinates, setRouteCoordinates] = useState([]);
   const [distance, setDistance] = useState(null);
 
-  // Fetch route between the two points from Geoapify Routing API
+  useEffect(() => {
+    const fromHome = JSON.parse(localStorage.getItem('location'));
+    if (fromHome) {
+      const { first, second } = fromHome;
+      if (first) {
+        setLocationInput(first);
+        fetchCoordinates(first, setPosition);
+      }
+      if (second) {
+        setDestinationInput(second);
+        fetchCoordinates(second, setSecondPosition);
+      }
+    }
+  }, []);
+
+  const fetchCoordinates = async (locationName, setPos) => {
+    if (!locationName) return;
+
+    try {
+      const response = await fetch(
+        `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(
+          locationName,
+        )}&apiKey=${GEOAPIFY_API_KEY}`,
+      );
+      const data = await response.json();
+      if (data.features && data.features.length > 0) {
+        const [lon, lat] = data.features[0].geometry.coordinates; // [lon, lat]
+        setPos([lat, lon]);
+      } else {
+        console.warn('No coordinates found for:', locationName);
+        setPos([26.8854284, 80.99749539150943]); // Default coordinates
+      }
+    } catch (error) {
+      console.error('Error fetching coordinates:', error);
+    }
+  };
+
   const fetchRoute = async () => {
-    if (!position || !secondPosition) return; // Ensure both positions are set
+    if (!position || !secondPosition) return;
 
     const response = await fetch(
       `https://api.geoapify.com/v1/routing?waypoints=${position[0]},${position[1]}|${secondPosition[0]},${secondPosition[1]}&mode=drive&apiKey=${GEOAPIFY_API_KEY}`,
     );
     const data = await response.json();
-    console.log('data', data.features);
 
     if (data.features && data.features.length > 0) {
       const coordinates = data.features[0].geometry.coordinates.map((coord) => [
         coord[1],
         coord[0],
-      ]); // [lat, lng]
+      ]);
       setRouteCoordinates(coordinates);
       setDistance(data.features[0].properties.distance / 1000);
     }
@@ -268,7 +321,6 @@ const RideSelection = () => {
     }
   };
 
-  // Fetch suggestions from Geoapify Autocomplete API for destination
   const fetchDestinationSuggestions = async (input) => {
     if (input.length > 2) {
       const response = await fetch(
@@ -366,13 +418,57 @@ const RideSelection = () => {
               )}
             </div>
 
-            {/* Button to check rides and display route */}
+            <div
+              onClick={() => {
+                localStorage.removeItem('location'),
+                  setLocationInput(''),
+                  setDestinationInput('');
+              }}
+              className="text-right hover:underline cursor-pointer pr-3 w-full text-xs"
+            >
+              Clear
+            </div>
+
             <button
-              onClick={fetchRoute} // Fetch route when clicked
+              onClick={fetchRoute}
               className="border w-full py-2 bg-black text-white hover:bg-gray-600 transition duration-100"
             >
               Check Rides
             </button>
+          </div>
+        </div>
+
+
+        {/* rides */}
+        <div>
+          <div className="p-2 mt-5 flex flex-row w-[16vw] mx-auto items-center bg-gradient-to-r from-gray-100 to-gray-200 rounded-md shadow-lg transition-transform transform">
+            {/* Driver Profile Picture */}
+            <img
+              src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxEQDw8QEBAQDg8PDw0PDQ0QDQ8NDw0PFhEWFhURExMYHSggGBolGxMTITEhJSk3Li4uFx8zODMsNygtLisBCgoKDQ0NDg0NDysZFRkrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrK//AABEIAOEA4QMBIgACEQEDEQH/xAAbAAEAAgMBAQAAAAAAAAAAAAAAAwQBAgUGB//EADAQAQACAAMFBgYCAwEAAAAAAAABAgMEESExQVFxBRJhgZHBIjJSobHRovATQuFy/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAH/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwD7iAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANZxI5tf8ANHP7SCQR/wCaP7EsxiRzBuMRLIAAAAAAAAAAAAAAAAAAAMWtpvBlpfEiP0hvizO7ZCMEtsaeiOZYEAAAAGYlvXFmPFGAs1xYnwSKTemJMeMclFoa0tE7mwAAAAAAAAAAAAAMWnTaDF7aK1rTO8vbWWqAAAAAAAEAAAAAM1nTcs4d9evFVZrOm0Fwa0trDZQAAAAAAAAAAVsa+s6cITYttIVQAEAABpjY0UjWfKOMmNiRWszPDhznk5OJiTadZ3/gE2LnLTu+GPDf6oJnXft67WBUIlPhZu9ePejlO37oAHWwMxF92yeMJXFraYnWNkxul1ctjd+uvGNkx4oqUAAAG+HfSfDitKSxgW2acvwolAAAAAAAAAkFfHtt6ImZlhAAAABz+0cTW0V4RtnrKolzU/Hb/wBTHoiVAAAABYyOJpeI4W2T7K7NZ0mJ5TEg7QywigADfCtpMejQBdGKTrEMqAAAAAADXEnZLZHj/LPl+QVgEAAAAHJzddL266+u1Evdo4e63lPsoqgAAAA2w662iOcxH3arXZ+FrbvcK/kHSYBFAAAAWcCdiRFl909fZKoAAAAAAI8f5Z8vykaYsbJBVAQAAAAYtWJiYnbE73LzGBNJ5xwl1WLViY0mNYngDii9i5D6Z08J/aC2UvH+uvSYlUQCaMrf6fvEJ8LIfVPlH7BVwcKbzpHnPCHWwsOKxERw+/izSkVjSI0hlFAAAAAAWMvunr7JUeBGxIoAAAAAAMTDICnLCTGrpPXajQAAAQ5jMxTZvnlHuCYmXLxM1e3HSOUbEEyo7XejnHqd6OcerigO13o5x6nejnHq4oDtxI4iXDzN67p18J2wDrCvl83Ftk/DP2nosIAAANsOuswCzSNIhsCgAAAAAAACPGrrHRWXVXFppPhO4GgMXtpEzO6I1QQZzMd2NI+aftHNzJbXvNpmZ3y1VAAAAAAAABfyWZ1+G2//AFnn4KBE6bt/AHbGmBid6sT69W6KLGBXjzQ0rrOi3EKAAAAAAAAAADW9dY0bAKdo02KvaFtKac5iPf2dPEpr14S5XakaRWPGQc8AQAAAAAAAAABf7NtstHKYn++i7EOf2Z81unu7GFh6dfwKzh00jx4twAAAAAAAAAAAAAQ5nL1xI0t5TxhMA8/msnbD37a8LRu8+Su9RMKGY7MrbbX4J5b6+nAHGFjGyWJTfXWOdfihXEAAAAATYOUvfdWdOc7IBCmy+WtiT8MbONp3Q6OX7LiNt570/TGyv/XQrWIjSI0iN0RsgVBlMpXDjZttO+3P9LAAAAAAAAAAAAAAAAAAAAI8TArb5qxPjMRr6pAFO/ZmHPCY6Wn3Rz2TT6rfx/ToAOdHZNPqt/H9JK9mYcfVPW36XQEWHlqV3ViPHTWfVKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/9k="
+              alt="Driver"
+              className="w-12 h-12 rounded-full border border-gray-300 object-contain mt-2 ml-2"
+            />
+            <div>
+              <div className="flex flex-col ml-4">
+                <div className="flex flex-row items-center gap-12">
+                  <span className="text-md font-bold text-offblack transition-colors">
+                    Akash Pal
+                  </span>
+                  <span className="text-sm  font-semibold text-gray-800">
+                    Price: <span className="text-green-600">$20</span>
+                  </span>
+                </div>
+                <span className="text-xs text-gray-700 py-1">
+                  Expected Time:{' '}
+                  <span className="text-orange-500">15 mins</span>
+                </span>
+              </div>
+
+              {/* Select Rider Button */}
+              <button className="ml-4 mt-1 bg-gray-800 hover:bg-black text-white w-full font-semibold text-xs py-1 px-4 rounded-lg transition duration-200">
+                Select Rider
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -404,7 +500,13 @@ const RideSelection = () => {
 
           {/* Polyline for the route */}
           {routeCoordinates.length > 0 && (
-            <Polyline positions={routeCoordinates} color="blue" />
+            <Polyline
+              positions={routeCoordinates}
+              color="blue"
+              weight={8}
+              opacity={0.8}
+              dashArray="5, 10"
+            />
           )}
         </MapContainer>
         {distance && (

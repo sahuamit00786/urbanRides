@@ -11,7 +11,18 @@ function bikeController() {
           bikeType,
           bikePricePerHour,
           address,
+          fuelEfficiency,
+          engineCapacity,
+          transmission,
+          brand,
+          seatCapacity,
+          dayPackage,
+          weeklyPackage,
+          securityMoney,
+          features,
         } = req.body;
+
+        console.log('req.body', req.body);
         console.log('files', req.files);
 
         if (
@@ -19,18 +30,21 @@ function bikeController() {
           !bikeDescription ||
           !bikePricePerHour ||
           !bikeType ||
-          !address
+          !address ||
+          !fuelEfficiency ||
+          !engineCapacity ||
+          !transmission ||
+          !brand
         ) {
           return res.status(400).json({ msg: 'Missing Fields' });
         }
 
-        if (!req.files || req.files.length == 0) {
-          return res.status(404).json({ msg: 'no file Uploaded' });
+        if (!req.files || req.files.length === 0) {
+          return res.status(404).json({ msg: 'No file uploaded' });
         }
 
-        const imageData = req.files.map((image) => image.path);
-        console.log('imageData', req.files);
-
+        console.log('req', req.files);
+        const imageData = req.files.bikeImage.map((image) => image.path);
         const newBike = await Bike.create({
           bikeName,
           bikeDescription,
@@ -38,14 +52,28 @@ function bikeController() {
           bikePricePerHour,
           address,
           bikeImage: imageData,
+          fuelEfficiency,
+          engineCapacity,
+          transmission,
+          brand,
+          seatCapacity,
+          dayPackage,
+          weeklyPackage,
+          securityMoney,
+          features: features ? JSON.parse(features) : {},
         });
+
+        console.log('newBike', newBike);
 
         if (!newBike) {
           return res.status(500).json({ msg: 'Bike Addition Failed' });
         }
 
-        return res.status(201).json({ msg: 'Bike successfully added' });
+        return res
+          .status(201)
+          .json({ msg: 'Bike successfully added', bike: newBike });
       } catch (error) {
+        console.error('Error adding bike:', error);
         return res.status(500).json({ msg: 'Internal Server Error' });
       }
     },

@@ -1,6 +1,10 @@
+import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 
 const Ride = () => {
+  const { count } = useSelector((state) => state.counter);
+  console.log('count', count);
+
   return (
     <div className=" text-white min-h-screen">
       <div className="bg-black h-[92vh]">

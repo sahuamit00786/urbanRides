@@ -1,6 +1,30 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
+import { login } from '../../slices/slice/auth';
+import { errorMsg } from '../../toast';
 
 const SignIn = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const [formdata, setFromData] = useState({});
+
+  const handleChange = (e) => {
+    setFromData({ ...formdata, [e.target.id]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log('formdata', formdata);
+    const userData = await dispatch(login(formdata));
+    // console.log('userStatus', userData);
+    if (userData && userData.payload.status === 1) {
+      navigate('/');
+    } else if (userData && userData.error) {
+      errorMsg(userData.error);
+    }
+  };
+
   return (
     <div className="flex justify-center items-center h-screen">
       <div className="w-[60vw] flex mx-auto border rounded-lg shadow-lg overflow-hidden">
@@ -23,16 +47,23 @@ const SignIn = () => {
           </div>
           <div className="flex flex-col mt-2 items-center mb-10">
             <input
+              onChange={handleChange}
               type="text"
+              id="email"
               className="px-3 py-2 border rounded-md text-sm w-2/3 mb-4"
               placeholder="name@email.com"
             />
             <input
+              onChange={handleChange}
               type="password"
+              id="password"
               className="px-3 py-2 border rounded-md text-sm w-2/3 mb-4"
               placeholder="Password"
             />
-            <button className="text-sm font-semibold bg-black text-white py-2 hover:bg-gray-700 transition duration-200 w-2/3 rounded-lg">
+            <button
+              onClick={handleSubmit}
+              className="text-sm font-semibold bg-black text-white py-2 hover:bg-gray-700 transition duration-200 w-2/3 rounded-lg"
+            >
               Sign in
             </button>
           </div>

@@ -1,6 +1,57 @@
+import { useState } from 'react';
 import SuggestCard from '../components/SuggestCard';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
+  const { isAuthenticated } = useSelector((state) => state.counter);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const GEOAPIFY_API_KEY = 'b81a0261fe1e433bba84bd8216048977';
+
+  const location = {
+    first: '',
+    second: '',
+  };
+
+  const [locationInput, setLocationInput] = useState('');
+  const [destinationInput, setDestinationInput] = useState('');
+  const [locationSuggestions, setLocationSuggestions] = useState([]);
+  const [destinationSuggestions, setDestinationSuggestions] = useState([]);
+
+  const fetchLocationSuggestions = async (input) => {
+    if (input.length > 2) {
+      const response = await fetch(
+        `https://api.geoapify.com/v1/geocode/autocomplete?text=${input}&apiKey=${GEOAPIFY_API_KEY}`,
+      );
+      const data = await response.json();
+      setLocationSuggestions(data.features);
+    } else {
+      setLocationSuggestions([]);
+    }
+  };
+
+  // Fetch suggestions from Geoapify Autocomplete API for destination
+  const fetchDestinationSuggestions = async (input) => {
+    if (input.length > 2) {
+      const response = await fetch(
+        `https://api.geoapify.com/v1/geocode/autocomplete?text=${input}&apiKey=${GEOAPIFY_API_KEY}`,
+      );
+      const data = await response.json();
+      setDestinationSuggestions(data.features);
+    } else {
+      setDestinationSuggestions([]);
+    }
+  };
+
+  const handleSeePrices = async () => {
+    if (locationInput && destinationInput) {
+      (location.first = locationInput), (location.second = destinationInput);
+    }
+    localStorage.setItem('location', JSON.stringify(location));
+    navigate('/rideSelection');
+  };
+
   return (
     <div className=" text-white min-h-screen">
       <div className="bg-black h-[92vh]">
@@ -24,8 +75,29 @@ const Home = () => {
                   type="text"
                   placeholder="Enter location"
                   className="flex-1 focus:outline-none border-0"
+                  value={locationInput}
+                  onChange={(e) => {
+                    setLocationInput(e.target.value);
+                    fetchLocationSuggestions(e.target.value);
+                  }}
                 />
                 <i className="fa-solid fa-paper-plane"></i>
+                {locationSuggestions.length > 0 && (
+                  <div className="absolute top-[45px] left-0 w-full bg-white shadow-lg z-10">
+                    {locationSuggestions.map((suggestion) => (
+                      <div
+                        key={suggestion.properties.formatted}
+                        className="p-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => {
+                          setLocationInput(suggestion.properties.formatted);
+                          setLocationSuggestions([]);
+                        }}
+                      >
+                        {suggestion.properties.formatted}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Enter Destination */}
@@ -35,12 +107,36 @@ const Home = () => {
                   type="text"
                   placeholder="Enter destination"
                   className="flex-1 focus:outline-none"
+                  value={destinationInput}
+                  onChange={(e) => {
+                    setDestinationInput(e.target.value);
+                    fetchDestinationSuggestions(e.target.value);
+                  }}
                 />
                 <i className="fa-solid fa-map-pin"></i>
+                {destinationSuggestions.length > 0 && (
+                  <div className="absolute top-[105px] left-0 w-[20vw] bg-white shadow-lg z-10">
+                    {destinationSuggestions.map((suggestion) => (
+                      <div
+                        key={suggestion.properties.formatted}
+                        className="p-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => {
+                          setDestinationInput(suggestion.properties.formatted);
+                          setDestinationSuggestions([]);
+                        }}
+                      >
+                        {suggestion.properties.formatted}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
-            <button className="mt-12 border px-5 hover:bg-gray-200 transition duration-200 hover:text-black py-2">
+            <button
+              onClick={handleSeePrices}
+              className="mt-12 border px-5 hover:bg-gray-200 transition duration-200 hover:text-black py-2"
+            >
               See prices
             </button>
           </div>
@@ -108,9 +204,11 @@ const Home = () => {
               </button>
             </div>
             <div>
-              <button className="border-b">
-                Already have an account? Sign in
-              </button>
+              {!isAuthenticated && (
+                <button className="border-b">
+                  Already have an account? Sign in
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -132,9 +230,11 @@ const Home = () => {
               </button>
             </div>
             <div>
-              <button className="border-b">
-                Already have an account? Sign in
-              </button>
+              {!isAuthenticated && (
+                <button className="border-b">
+                  Already have an account? Sign in
+                </button>
+              )}
             </div>
           </div>
         </div>

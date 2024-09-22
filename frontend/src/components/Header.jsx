@@ -1,9 +1,25 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 
 const Header = () => {
   const [toggle, setToggle] = useState(false);
   const [aboutToggle, setAboutToggle] = useState(false);
+  const [userData, setUserData] = useState({});
+
+  const { isAuthenticated } = useSelector((state) => state.counter);
+
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    setUserData(userData);
+  }, []);
+
+  console.log('user', userData);
+
+  const handleSignOut = () => {
+    localStorage.clear();
+    window.location.reload();
+  };
 
   return (
     <div className="bg-black pb-1 text-white">
@@ -66,7 +82,7 @@ const Header = () => {
               onClick={() => setToggle(!toggle)}
               className="flex flex-row gap-3 items-center py-1 bg-white text-black px-5 rounded-xl"
             >
-              Amit{' '}
+              {userData?.name?.split(' ')[0] || 'User'}
               {toggle ? (
                 <i className="fa-solid fa-chevron-up"></i>
               ) : (
@@ -80,14 +96,24 @@ const Header = () => {
             >
               <div className="flex flex-col py-2 text-center gap-2 border border-black rounded-lg">
                 <div className="border-b hover:text-gray-700 border-gray-700">
-                  <Link to="/profile">Profile</Link>
+                  {userData?.userType === 'admin' ? (
+                    <Link to="/admin">Admin</Link>
+                  ) : (
+                    <Link to="/profile">Profile</Link>
+                  )}
                 </div>
                 <div className="border-b hover:text-gray-700 border-gray-700">
                   <Link to="/profile?section=rides">Rides</Link>
                 </div>
-                <div className="hover:text-gray-700">
-                  <Link to="/sign-in">Sign out</Link>
-                </div>
+                {isAuthenticated ? (
+                  <div className="hover:text-gray-700">
+                    <Link onClick={handleSignOut}>Sign out</Link>
+                  </div>
+                ) : (
+                  <div className="hover:text-gray-700">
+                    <Link to="/sign-in">Sign in</Link>
+                  </div>
+                )}
               </div>
             </div>
           </Link>

@@ -2,10 +2,6 @@ import mongoose from 'mongoose';
 
 const bikeSchema = new mongoose.Schema(
   {
-    bikeId: {
-      type: mongoose.Schema.Types.ObjectId,
-      auto: true,
-    },
     bikeName: {
       type: String,
       required: true,
@@ -53,12 +49,10 @@ const bikeSchema = new mongoose.Schema(
     isRented: {
       type: Boolean,
       default: false,
-      required: true,
     },
     transmission: {
       type: String,
       enum: ['manual', 'automatic', 'semi-automatic'],
-      required: true,
     },
     seatCapacity: {
       type: Number,
@@ -81,10 +75,6 @@ const bikeSchema = new mongoose.Schema(
       required: true,
     },
     brand: {
-      type: String,
-      required: true,
-    },
-    name: {
       type: String,
       required: true,
     },

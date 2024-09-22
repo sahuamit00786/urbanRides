@@ -1,6 +1,37 @@
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
+import { userLogin } from '../../slices/slice/auth';
+import { errorMsg } from '../../toast';
 
 const Signup = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const [formData, setFormData] = useState({});
+
+  const { error, isAuthenticated, loading } = useSelector(
+    (state) => state.counter,
+  );
+
+  useEffect(() => {
+    errorMsg(error);
+  }, [error]);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const userData = await dispatch(userLogin(formData));
+    // console.log('userStatus', userData);
+    if (userData && userData.payload.status === 1) {
+      navigate('/sign-in');
+    } else if (userData && userData.error) {
+      errorMsg(userData.error);
+    }
+  };
+
   return (
     <div className="flex justify-center items-center h-screen">
       <div className="w-[60vw] flex mx-auto border rounded-lg shadow-lg overflow-hidden">
@@ -27,40 +58,47 @@ const Signup = () => {
           <form className="flex flex-col mt-2 items-center mb-10">
             <input
               type="text"
-              name="name"
+              onChange={handleChange}
+              id="name"
               className="px-3 py-2 border rounded-md text-sm w-2/3 mb-4"
               placeholder="Full Name"
               required
             />
             <input
               type="email"
-              name="email"
+              id="email"
+              onChange={handleChange}
               className="px-3 py-2 border rounded-md text-sm w-2/3 mb-4"
               placeholder="Email"
               required
             />
             <input
               type="password"
-              name="password"
+              id="password"
+              onChange={handleChange}
               className="px-3 py-2 border rounded-md text-sm w-2/3 mb-4"
               placeholder="Password"
               required
             />
             <input
               type="text"
-              name="phone"
+              id="phone"
+              onChange={handleChange}
+              maxLength={12}
               className="px-3 py-2 border rounded-md text-sm w-2/3 mb-4"
               placeholder="Phone"
               required
             />
             <input
               type="text"
-              name="alternatePhone"
+              id="alternatePhone"
+              onChange={handleChange}
+              maxLength={12}
               className="px-3 py-2 border rounded-md text-sm w-2/3 mb-4"
               placeholder="Alternate Phone"
             />
             <button
-              type="submit"
+              onClick={handleSubmit}
               className="text-sm font-semibold bg-black text-white py-2 hover:bg-gray-700 transition duration-200 w-2/3 rounded-lg"
             >
               Sign up

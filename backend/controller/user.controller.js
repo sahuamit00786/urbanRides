@@ -6,34 +6,40 @@ import sendPasswordResetEmail from '../config/mailtransfer.js';
 function userController() {
   return {
     registration: async (req, res) => {
+      console.log('req.body', req.body);
       const { name, email, password, phone, alternatePhone } = req.body;
-      
+
       try {
         if (!name || !email || !password || !phone || !alternatePhone) {
-        res.status(404).json({ msg: "missing fields found" });
+          return res.status(404).json({ msg: 'missing fields found' });
         }
-        
+
         const exists = await User.findOne({ email });
         if (exists) {
-          return res.status(400).json({msg:"Email already exists"})
+          return res
+            .status(400)
+            .json({ msg: 'Email already exists', status: 0 });
         }
 
-      const hashedPassword = await bcryptjs.hashSync(password, 10);
+        const hashedPassword = await bcryptjs.hashSync(password, 10);
 
-      const registeredUser = await User.create({
-        name,
-        email,
-        password:hashedPassword,
-        phone,
-        alternatePhone
-      })
+        const registeredUser = await User.create({
+          name,
+          email,
+          password: hashedPassword,
+          phone,
+          alternatePhone,
+        });
 
-      if (registeredUser) {
-        res.status(201).json({msg:"User Created Successfully", registeredUser})
-      }
-
+        if (registeredUser) {
+          return res.status(201).json({
+            msg: 'User Created Successfully',
+            registeredUser,
+            status: 1,
+          });
+        }
       } catch (error) {
-        res.status(500).json({ msg: "Error creating user", error });
+        return res.status(500).json({ msg: 'Error creating user', error });
       }
     },
 
@@ -48,7 +54,7 @@ function userController() {
 
         const validPassword = await bcryptjs.compareSync(req.body.password, user.password);
         if (!validPassword) {
-          return res.status(400).json({ msg: "Invalid password" });
+          return res.status(400).json({ msg: 'Invalid password', status: 0 });
         }
 
         const token = jwt.sign(
@@ -66,7 +72,8 @@ function userController() {
        return res.status(201).json({
           msg: "Log in Successfully",
          token,
-         userData: rest
+         userData: rest,
+         status:1
         });
 
       } catch (error) {
